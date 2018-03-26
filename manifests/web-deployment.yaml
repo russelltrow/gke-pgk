@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: gke-pgk-app
 spec:
-  replicas: 1
+  replicas: 5
   template:
     metadata:
       labels:
@@ -11,6 +11,37 @@ spec:
     spec:
       containers:
       - name: gke-pgk-app
-        image: dockleafdigital/gke-pgk-app
+        image: dockleafdigital/gke-pgk-app:v1.0.3
         ports:
         - containerPort: 9292
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-db-credentials
+              key: username
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cloudsql-db-credentials
+              key: password
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9292
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 1
+      - name: cloudsql-proxy
+        image: gcr.io/cloudsql-docker/gce-proxy:1.11
+        command: ["/cloud_sql_proxy",
+                  "-instances=production-grade-k8s-russ:europe-west2:gke-pgk-app=tcp:3306",
+                  "-credential_file=/secrets/cloudsql/credentials.json"]
+        volumeMounts:
+          - name: cloudsql-instance-credentials
+            mountPath: /secrets/cloudsql
+            readOnly: true
+      volumes:
+      - name: cloudsql-instance-credentials
+        secret:
+          secretName: cloudsql-instance-credentials

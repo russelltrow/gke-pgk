@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-probe
+spec:
+  containers:
+  - name: liveness
+    image: dockleafdigital/gke-pgk-app:v1.0.3
+    ports:
+      - name: health
+        containerPort: 9292
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 9292
+      initialDelaySeconds: 15
+      periodSeconds: 10        # Will be called every 10 seconds
+      timeoutSeconds: 1        # Probe must respond within 1 second
