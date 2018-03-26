@@ -1,0 +1,31 @@
+version: '2'
+services:
+  web:
+    build: .
+    depends_on:
+      - mysql
+    links:
+      - mysql
+    ports:
+      - '9292:9292'
+    environment:
+      DB_USER: pgk_user
+      DB_PASSWORD: sdow231AS8aDw
+    volumes:
+      - .:/app
+    command: ruby web.rb
+
+  mysql:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql/development/data:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: "pgk_development"
+      MYSQL_USER: "pgk_user"
+      MYSQL_PASSWORD: "sdow231AS8aDw"
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    command: mysqld --user=root --sql-mode=""
+
